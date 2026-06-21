@@ -116,38 +116,33 @@ with col4:
 
 st.markdown("---")
 
-# --- BLOC 2 : TEMPÉRATURE MOYENNE ---
-st.subheader("📈 Évolution de la température moyenne annuelle")
+# --- BLOC 2 & 3 : TEMPÉRATURE + JOURS CANICULE ---
+col_left, col_right = st.columns(2)
 
-hist_t = get_hist(ville, 't_mean')
-pred_opt = get_serie(ville, 't_mean', 'optimiste')
-pred_med = get_serie(ville, 't_mean', 'median')
-pred_pes = get_serie(ville, 't_mean', 'pessimiste')
+with col_left:
+    st.subheader("📈 Température moyenne annuelle")
+    hist_t = get_hist(ville, 't_mean')
+    pred_opt = get_serie(ville, 't_mean', 'optimiste')
+    pred_med = get_serie(ville, 't_mean', 'median')
+    pred_pes = get_serie(ville, 't_mean', 'pessimiste')
 
-fig_t = go.Figure()
-fig_t.add_trace(go.Scatter(x=hist_t['year'], y=hist_t['value'], mode='markers',
-    name='Observé', marker=dict(color='steelblue', size=5, opacity=0.6)))
-fig_t.add_trace(go.Scatter(x=pred_med['year'], y=pred_med['value'], mode='lines',
-    name='Projection médiane', line=dict(color='red', width=2)))
-fig_t.add_trace(go.Scatter(x=pred_pes['year'], y=pred_pes['value'], mode='lines',
-    name='Pessimiste', line=dict(color='red', width=0), showlegend=False))
-fig_t.add_trace(go.Scatter(x=pred_opt['year'], y=pred_opt['value'], mode='lines',
-    name='Intervalle optimiste/pessimiste', fill='tonexty',
-    fillcolor='rgba(255,0,0,0.1)', line=dict(color='red', width=0)))
-fig_t.add_vline(x=2026, line_dash="dash", line_color="gray", annotation_text="Aujourd'hui")
-fig_t.add_vline(x=annee_cible, line_dash="dot", line_color="orange", annotation_text=str(annee_cible))
-fig_t.update_layout(height=400, xaxis_title="Année", yaxis_title="°C",
-    legend=dict(orientation="h", y=-0.2), hovermode="x unified")
-st.plotly_chart(fig_t, use_container_width=True)
+    fig_t = go.Figure()
+    fig_t.add_trace(go.Scatter(x=hist_t['year'], y=hist_t['value'], mode='markers',
+        name='Observé', marker=dict(color='steelblue', size=5, opacity=0.6)))
+    fig_t.add_trace(go.Scatter(x=pred_med['year'], y=pred_med['value'], mode='lines',
+        name='Projection médiane', line=dict(color='red', width=2)))
+    fig_t.add_trace(go.Scatter(x=pred_pes['year'], y=pred_pes['value'], mode='lines',
+        line=dict(width=0), showlegend=False))
+    fig_t.add_trace(go.Scatter(x=pred_opt['year'], y=pred_opt['value'], mode='lines',
+        name='Intervalle', fill='tonexty', fillcolor='rgba(255,0,0,0.1)', line=dict(width=0)))
+    fig_t.add_vline(x=2026, line_dash="dash", line_color="gray", annotation_text="Aujourd'hui")
+    fig_t.add_vline(x=annee_cible, line_dash="dot", line_color="orange", annotation_text=str(annee_cible))
+    fig_t.update_layout(height=500, xaxis_title="Année", yaxis_title="°C",
+        legend=dict(orientation="h", y=-0.15), hovermode="x unified")
+    st.plotly_chart(fig_t, use_container_width=True)
 
-st.markdown("---")
-
-# --- BLOC 3 : JOURS DE CANICULE & NUITS TROPICALES ---
-st.subheader("🔥 Extrêmes climatiques")
-
-col_a, col_b = st.columns(2)
-
-with col_a:
+with col_right:
+    st.subheader("🔥 Jours de canicule (t_max > 35°C)")
     hist_c = get_hist(ville, 'jours_canicule')
     pred_med_c = get_serie(ville, 'jours_canicule', 'median')
     pred_opt_c = get_serie(ville, 'jours_canicule', 'optimiste')
@@ -163,12 +158,19 @@ with col_a:
     fig_c.add_trace(go.Scatter(x=pred_opt_c['year'], y=pred_opt_c['value'],
         mode='lines', fill='tonexty', fillcolor='rgba(200,0,0,0.1)',
         line=dict(width=0), name='Intervalle'))
-    fig_c.add_vline(x=2026, line_dash="dash", line_color="gray")
-    fig_c.update_layout(height=350, title="Jours de canicule (t_max > 35°C)",
-        xaxis_title="Année", yaxis_title="Jours", hovermode="x unified")
+    fig_c.add_vline(x=2026, line_dash="dash", line_color="gray", annotation_text="Aujourd'hui")
+    fig_c.add_vline(x=annee_cible, line_dash="dot", line_color="orange", annotation_text=str(annee_cible))
+    fig_c.update_layout(height=500, xaxis_title="Année", yaxis_title="Jours",
+        legend=dict(orientation="h", y=-0.15), hovermode="x unified")
     st.plotly_chart(fig_c, use_container_width=True)
 
-with col_b:
+st.markdown("---")
+
+# --- BLOC 4 & 5 : NUITS TROPICALES + PRÉCIPITATIONS ---
+col_left2, col_right2 = st.columns(2)
+
+with col_left2:
+    st.subheader("🌙 Nuits tropicales (t_min > 20°C)")
     hist_n = get_hist(ville, 'nuits_tropicales')
     pred_med_n = get_serie(ville, 'nuits_tropicales', 'median')
     pred_opt_n = get_serie(ville, 'nuits_tropicales', 'optimiste')
@@ -184,65 +186,38 @@ with col_b:
     fig_n.add_trace(go.Scatter(x=pred_opt_n['year'], y=pred_opt_n['value'],
         mode='lines', fill='tonexty', fillcolor='rgba(128,0,128,0.1)',
         line=dict(width=0), name='Intervalle'))
-    fig_n.add_vline(x=2026, line_dash="dash", line_color="gray")
-    fig_n.update_layout(height=350, title="Nuits tropicales (t_min > 20°C)",
-        xaxis_title="Année", yaxis_title="Nuits", hovermode="x unified")
+    fig_n.add_vline(x=2026, line_dash="dash", line_color="gray", annotation_text="Aujourd'hui")
+    fig_n.add_vline(x=annee_cible, line_dash="dot", line_color="orange", annotation_text=str(annee_cible))
+    fig_n.update_layout(height=500, xaxis_title="Année", yaxis_title="Nuits",
+        legend=dict(orientation="h", y=-0.15), hovermode="x unified")
     st.plotly_chart(fig_n, use_container_width=True)
 
-st.markdown("---")
+with col_right2:
+    st.subheader("🌧️ Précipitations annuelles")
+    hist_p = get_hist(ville, 'pr_sum')
+    pred_med_p = get_serie(ville, 'pr_sum', 'median')
+    pred_opt_p = get_serie(ville, 'pr_sum', 'optimiste')
+    pred_pes_p = get_serie(ville, 'pr_sum', 'pessimiste')
 
-# --- BLOC 4 : PRÉCIPITATIONS ---
-st.subheader("🌧️ Évolution des précipitations annuelles")
-
-hist_p = get_hist(ville, 'pr_sum')
-pred_med_p = get_serie(ville, 'pr_sum', 'median')
-pred_opt_p = get_serie(ville, 'pr_sum', 'optimiste')
-pred_pes_p = get_serie(ville, 'pr_sum', 'pessimiste')
-
-fig_p = go.Figure()
-fig_p.add_trace(go.Bar(x=hist_p['year'], y=hist_p['value'],
-    name='Observé', marker_color='steelblue', opacity=0.6))
-fig_p.add_trace(go.Scatter(x=pred_med_p['year'], y=pred_med_p['value'],
-    mode='lines', name='Projection', line=dict(color='darkblue', width=2)))
-fig_p.add_trace(go.Scatter(x=pred_pes_p['year'], y=pred_pes_p['value'],
-    mode='lines', line=dict(width=0), showlegend=False))
-fig_p.add_trace(go.Scatter(x=pred_opt_p['year'], y=pred_opt_p['value'],
-    mode='lines', fill='tonexty', fillcolor='rgba(0,0,200,0.1)',
-    line=dict(width=0), name='Intervalle'))
-fig_p.add_vline(x=2026, line_dash="dash", line_color="gray", annotation_text="Aujourd'hui")
-fig_p.add_vline(x=annee_cible, line_dash="dot", line_color="orange", annotation_text=str(annee_cible))
-fig_p.update_layout(height=400, xaxis_title="Année", yaxis_title="mm",
-    legend=dict(orientation="h", y=-0.2), hovermode="x unified")
-st.plotly_chart(fig_p, use_container_width=True)
+    fig_p = go.Figure()
+    fig_p.add_trace(go.Bar(x=hist_p['year'], y=hist_p['value'],
+        name='Observé', marker_color='steelblue', opacity=0.6))
+    fig_p.add_trace(go.Scatter(x=pred_med_p['year'], y=pred_med_p['value'],
+        mode='lines', name='Projection', line=dict(color='darkblue', width=2)))
+    fig_p.add_trace(go.Scatter(x=pred_pes_p['year'], y=pred_pes_p['value'],
+        mode='lines', line=dict(width=0), showlegend=False))
+    fig_p.add_trace(go.Scatter(x=pred_opt_p['year'], y=pred_opt_p['value'],
+        mode='lines', fill='tonexty', fillcolor='rgba(0,0,200,0.1)',
+        line=dict(width=0), name='Intervalle'))
+    fig_p.add_vline(x=2026, line_dash="dash", line_color="gray", annotation_text="Aujourd'hui")
+    fig_p.add_vline(x=annee_cible, line_dash="dot", line_color="orange", annotation_text=str(annee_cible))
+    fig_p.update_layout(height=500, xaxis_title="Année", yaxis_title="mm",
+        legend=dict(orientation="h", y=-0.15), hovermode="x unified")
+    st.plotly_chart(fig_p, use_container_width=True)
 
 st.markdown("---")
 
-# --- BLOC 5 : CARTE ---
-st.subheader(f"🗺️ Carte des températures moyennes en {annee_cible}")
 
-map_data = []
-for v, (lat, lon) in COORDS.items():
-    val = get_metric(v, 't_mean', annee_cible, scenario_col)
-    if val:
-        map_data.append({'ville': v, 'lat': lat, 'lon': lon, 't_mean': val})
-
-df_map = pd.DataFrame(map_data)
-
-fig_map = px.scatter_mapbox(
-    df_map, lat='lat', lon='lon', color='t_mean',
-    size='t_mean', size_max=30,
-    hover_name='ville', hover_data={'t_mean': ':.1f', 'lat': False, 'lon': False},
-    color_continuous_scale='RdYlBu_r',
-    range_color=[df_map['t_mean'].min(), df_map['t_mean'].max()],
-    mapbox_style='carto-positron',
-    zoom=4.5, center={"lat": 46.5, "lon": 2.5},
-    labels={'t_mean': '°C'},
-    title=f"Température moyenne projetée en {annee_cible} — Scénario {scenario}"
-)
-fig_map.update_layout(height=550, coloraxis_colorbar=dict(title="°C"))
-st.plotly_chart(fig_map, use_container_width=True)
-
-st.markdown("---")
 
 # --- BLOC 6 : TABLEAU COMPARATIF ---
 st.subheader(f"📋 Comparatif toutes villes en {annee_cible}")
