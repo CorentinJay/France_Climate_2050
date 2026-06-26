@@ -74,9 +74,13 @@ def get_hist(ville, metrique):
     return historique[historique['ville'] == ville][['year', metrique]].rename(columns={metrique: 'value'})
 
 def get_normale(ville, metrique):
-    """Moyenne 1981-2010 depuis l'historique"""
     hist = get_hist(ville, metrique)
     return round(hist[(hist['year'] >= 1981) & (hist['year'] <= 2010)]['value'].mean(), 1)
+
+def delta_str(val, ref):
+    delta = round(val - ref, 1)
+    pct = round((val - ref) / abs(ref) * 100, 1) if ref != 0 else 0
+    return f"{delta:+} ({pct:+.1f}%)"
 
 # --- SIDEBAR ---
 st.sidebar.title("🌡️ France Climate 2050")
@@ -98,11 +102,6 @@ st.markdown("---")
 st.subheader(f"📊 Indicateurs clés en {annee_cible} vs normale 1981-2010")
 
 col1, col2, col3, col4 = st.columns(4)
-
-def delta_str(val, ref):
-    delta = round(val - ref, 1)
-    pct = round((val - ref) / abs(ref) * 100, 1) if ref != 0 else 0
-    return f"{delta:+} ({pct:+.1f}%)"
 
 with col1:
     val = get_metric(ville, 't_mean', annee_cible, scenario_col)
@@ -147,8 +146,10 @@ with col_left:
         line=dict(width=0), showlegend=False))
     fig_t.add_trace(go.Scatter(x=pred_opt['year'], y=pred_opt['value'], mode='lines',
         name='Intervalle', fill='tonexty', fillcolor='rgba(255,0,0,0.1)', line=dict(width=0)))
-    fig_t.add_vline(x=2026, line_dash="dash", line_color="gray", annotation_text="Aujourd'hui")
-    fig_t.add_vline(x=annee_cible, line_dash="dot", line_color="orange", annotation_text=str(annee_cible))
+    fig_t.add_vline(x=2026, line_dash="dash", line_color="gray",
+        annotation_text="Aujourd'hui", annotation_position="top left")
+    fig_t.add_vline(x=annee_cible, line_dash="dot", line_color="orange",
+        annotation_text=str(annee_cible), annotation_position="top right")
     fig_t.update_layout(height=500, xaxis_title="Année", yaxis_title="°C",
         legend=dict(orientation="h", y=-0.15), hovermode="x unified")
     st.plotly_chart(fig_t, use_container_width=True)
@@ -160,7 +161,6 @@ with col_right:
     pred_opt_c = get_serie(ville, 'jours_canicule', 'optimiste')
     pred_pes_c = get_serie(ville, 'jours_canicule', 'pessimiste')
 
-    # Moyenne mobile 10 ans
     hist_c_sorted = hist_c.sort_values('year')
     rolling_c = hist_c_sorted['value'].rolling(10, min_periods=5).mean()
 
@@ -176,8 +176,10 @@ with col_right:
     fig_c.add_trace(go.Scatter(x=pred_opt_c['year'], y=pred_opt_c['value'],
         mode='lines', fill='tonexty', fillcolor='rgba(200,0,0,0.1)',
         line=dict(width=0), name='Intervalle'))
-    fig_c.add_vline(x=2026, line_dash="dash", line_color="gray", annotation_text="Aujourd'hui")
-    fig_c.add_vline(x=annee_cible, line_dash="dot", line_color="orange", annotation_text=str(annee_cible))
+    fig_c.add_vline(x=2026, line_dash="dash", line_color="gray",
+        annotation_text="Aujourd'hui", annotation_position="top left")
+    fig_c.add_vline(x=annee_cible, line_dash="dot", line_color="orange",
+        annotation_text=str(annee_cible), annotation_position="top right")
     fig_c.update_layout(height=500, xaxis_title="Année", yaxis_title="Jours",
         legend=dict(orientation="h", y=-0.15), hovermode="x unified")
     st.plotly_chart(fig_c, use_container_width=True)
@@ -194,7 +196,6 @@ with col_left2:
     pred_opt_n = get_serie(ville, 'nuits_tropicales', 'optimiste')
     pred_pes_n = get_serie(ville, 'nuits_tropicales', 'pessimiste')
 
-    # Moyenne mobile 10 ans
     hist_n_sorted = hist_n.sort_values('year')
     rolling_n = hist_n_sorted['value'].rolling(10, min_periods=5).mean()
 
@@ -210,8 +211,10 @@ with col_left2:
     fig_n.add_trace(go.Scatter(x=pred_opt_n['year'], y=pred_opt_n['value'],
         mode='lines', fill='tonexty', fillcolor='rgba(128,0,128,0.1)',
         line=dict(width=0), name='Intervalle'))
-    fig_n.add_vline(x=2026, line_dash="dash", line_color="gray", annotation_text="Aujourd'hui")
-    fig_n.add_vline(x=annee_cible, line_dash="dot", line_color="orange", annotation_text=str(annee_cible))
+    fig_n.add_vline(x=2026, line_dash="dash", line_color="gray",
+        annotation_text="Aujourd'hui", annotation_position="top left")
+    fig_n.add_vline(x=annee_cible, line_dash="dot", line_color="orange",
+        annotation_text=str(annee_cible), annotation_position="top right")
     fig_n.update_layout(height=500, xaxis_title="Année", yaxis_title="Nuits",
         legend=dict(orientation="h", y=-0.15), hovermode="x unified")
     st.plotly_chart(fig_n, use_container_width=True)
@@ -233,8 +236,10 @@ with col_right2:
     fig_p.add_trace(go.Scatter(x=pred_opt_p['year'], y=pred_opt_p['value'],
         mode='lines', fill='tonexty', fillcolor='rgba(0,0,200,0.1)',
         line=dict(width=0), name='Intervalle'))
-    fig_p.add_vline(x=2026, line_dash="dash", line_color="gray", annotation_text="Aujourd'hui")
-    fig_p.add_vline(x=annee_cible, line_dash="dot", line_color="orange", annotation_text=str(annee_cible))
+    fig_p.add_vline(x=2026, line_dash="dash", line_color="gray",
+        annotation_text="Aujourd'hui", annotation_position="top left")
+    fig_p.add_vline(x=annee_cible, line_dash="dot", line_color="orange",
+        annotation_text=str(annee_cible), annotation_position="top right")
     fig_p.update_layout(height=500, xaxis_title="Année", yaxis_title="mm",
         legend=dict(orientation="h", y=-0.15), hovermode="x unified")
     st.plotly_chart(fig_p, use_container_width=True)
@@ -254,13 +259,15 @@ df_map = pd.DataFrame(map_data)
 
 fig_map = px.scatter_mapbox(
     df_map, lat='lat', lon='lon', color='t_mean',
-    size='t_mean', size_max=25,
+    size=[1] * len(df_map),
+    size_max=15,
     hover_name='ville',
     hover_data={'t_mean': ':.1f', 'lat': False, 'lon': False},
     color_continuous_scale='RdYlBu_r',
     range_color=[df_map['t_mean'].min() - 1, df_map['t_mean'].max() + 1],
     mapbox_style='carto-positron',
-    zoom=4.5, center={"lat": 46.5, "lon": 2.5},
+    zoom=5,
+    center={"lat": 46.5, "lon": 2.5},
     labels={'t_mean': '°C'},
 )
 fig_map.update_layout(
