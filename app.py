@@ -3,6 +3,7 @@ import pandas as pd
 import sqlalchemy as sa
 import plotly.graph_objects as go
 import plotly.express as px
+import numpy as np
 
 # --- CONFIG ---
 st.set_page_config(
@@ -72,6 +73,11 @@ def get_serie(ville, metrique, col):
 def get_hist(ville, metrique):
     return historique[historique['ville'] == ville][['year', metrique]].rename(columns={metrique: 'value'})
 
+def get_normale(ville, metrique):
+    """Moyenne 1981-2010 depuis l'historique"""
+    hist = get_hist(ville, metrique)
+    return round(hist[(hist['year'] >= 1981) & (hist['year'] <= 2010)]['value'].mean(), 1)
+
 # --- SIDEBAR ---
 st.sidebar.title("🌡️ France Climate 2050")
 st.sidebar.markdown("---")
@@ -89,30 +95,36 @@ st.markdown(f"Projections jusqu'en **{annee_cible}** — Scénario **{scenario}*
 st.markdown("---")
 
 # --- BLOC 1 : MÉTRIQUES CLÉS ---
-st.subheader(f"📊 Indicateurs clés en {annee_cible}")
+st.subheader(f"📊 Indicateurs clés en {annee_cible} vs normale 1981-2010")
 
-ref_year = 2024
 col1, col2, col3, col4 = st.columns(4)
+
+def delta_str(val, ref):
+    delta = round(val - ref, 1)
+    pct = round((val - ref) / abs(ref) * 100, 1) if ref != 0 else 0
+    return f"{delta:+} ({pct:+.1f}%)"
 
 with col1:
     val = get_metric(ville, 't_mean', annee_cible, scenario_col)
-    ref = get_metric(ville, 't_mean', ref_year, 'median')
-    st.metric("🌡️ Température moyenne", f"{val}°C", f"{round(val-ref, 1):+}°C vs 2024")
+    ref = get_normale(ville, 't_mean')
+    st.metric("🌡️ Température moyenne", f"{val}°C", delta_str(val, ref) + "°C vs 1981-2010")
 
 with col2:
     val = get_metric(ville, 't_max', annee_cible, scenario_col)
-    ref = get_metric(ville, 't_max', ref_year, 'median')
-    st.metric("🔥 Température maximale", f"{val}°C", f"{round(val-ref, 1):+}°C vs 2024")
+    ref = get_normale(ville, 't_max')
+    st.metric("🔥 Température maximale", f"{val}°C", delta_str(val, ref) + "°C vs 1981-2010")
 
 with col3:
     val = get_metric(ville, 'jours_canicule', annee_cible, scenario_col)
-    ref = get_metric(ville, 'jours_canicule', ref_year, 'median')
-    st.metric("☀️ Jours de canicule", f"{val} jours", f"{round(val-ref, 1):+} vs 2024")
+    ref = get_normale(ville, 'jours_canicule')
+    ref = ref if ref > 0 else 0.1
+    st.metric("☀️ Jours de canicule", f"{val} jours", delta_str(val, ref) + " vs 1981-2010")
 
 with col4:
     val = get_metric(ville, 'nuits_tropicales', annee_cible, scenario_col)
-    ref = get_metric(ville, 'nuits_tropicales', ref_year, 'median')
-    st.metric("🌙 Nuits tropicales", f"{val} nuits", f"{round(val-ref, 1):+} vs 2024")
+    ref = get_normale(ville, 'nuits_tropicales')
+    ref = ref if ref > 0 else 0.1
+    st.metric("🌙 Nuits tropicales", f"{val} nuits", delta_str(val, ref) + " vs 1981-2010")
 
 st.markdown("---")
 
@@ -148,9 +160,15 @@ with col_right:
     pred_opt_c = get_serie(ville, 'jours_canicule', 'optimiste')
     pred_pes_c = get_serie(ville, 'jours_canicule', 'pessimiste')
 
+    # Moyenne mobile 10 ans
+    hist_c_sorted = hist_c.sort_values('year')
+    rolling_c = hist_c_sorted['value'].rolling(10, min_periods=5).mean()
+
     fig_c = go.Figure()
-    fig_c.add_trace(go.Bar(x=hist_c['year'], y=hist_c['value'],
-        name='Observé', marker_color='orangered', opacity=0.6))
+    fig_c.add_trace(go.Bar(x=hist_c_sorted['year'], y=hist_c_sorted['value'],
+        name='Observé', marker_color='orangered', opacity=0.3))
+    fig_c.add_trace(go.Scatter(x=hist_c_sorted['year'], y=rolling_c,
+        mode='lines', name='Moyenne mobile 10 ans', line=dict(color='orangered', width=2)))
     fig_c.add_trace(go.Scatter(x=pred_med_c['year'], y=pred_med_c['value'],
         mode='lines', name='Projection', line=dict(color='darkred', width=2)))
     fig_c.add_trace(go.Scatter(x=pred_pes_c['year'], y=pred_pes_c['value'],
@@ -176,9 +194,15 @@ with col_left2:
     pred_opt_n = get_serie(ville, 'nuits_tropicales', 'optimiste')
     pred_pes_n = get_serie(ville, 'nuits_tropicales', 'pessimiste')
 
+    # Moyenne mobile 10 ans
+    hist_n_sorted = hist_n.sort_values('year')
+    rolling_n = hist_n_sorted['value'].rolling(10, min_periods=5).mean()
+
     fig_n = go.Figure()
-    fig_n.add_trace(go.Bar(x=hist_n['year'], y=hist_n['value'],
-        name='Observé', marker_color='purple', opacity=0.6))
+    fig_n.add_trace(go.Bar(x=hist_n_sorted['year'], y=hist_n_sorted['value'],
+        name='Observé', marker_color='purple', opacity=0.3))
+    fig_n.add_trace(go.Scatter(x=hist_n_sorted['year'], y=rolling_n,
+        mode='lines', name='Moyenne mobile 10 ans', line=dict(color='purple', width=2)))
     fig_n.add_trace(go.Scatter(x=pred_med_n['year'], y=pred_med_n['value'],
         mode='lines', name='Projection', line=dict(color='darkviolet', width=2)))
     fig_n.add_trace(go.Scatter(x=pred_pes_n['year'], y=pred_pes_n['value'],
@@ -217,9 +241,38 @@ with col_right2:
 
 st.markdown("---")
 
+# --- BLOC 6 : CARTE ---
+st.subheader(f"🗺️ Carte des températures moyennes en {annee_cible}")
 
+map_data = []
+for v, (lat, lon) in COORDS.items():
+    val = get_metric(v, 't_mean', annee_cible, scenario_col)
+    if val:
+        map_data.append({'ville': v, 'lat': lat, 'lon': lon, 't_mean': val})
 
-# --- BLOC 6 : TABLEAU COMPARATIF ---
+df_map = pd.DataFrame(map_data)
+
+fig_map = px.scatter_mapbox(
+    df_map, lat='lat', lon='lon', color='t_mean',
+    size='t_mean', size_max=25,
+    hover_name='ville',
+    hover_data={'t_mean': ':.1f', 'lat': False, 'lon': False},
+    color_continuous_scale='RdYlBu_r',
+    range_color=[df_map['t_mean'].min() - 1, df_map['t_mean'].max() + 1],
+    mapbox_style='carto-positron',
+    zoom=4.5, center={"lat": 46.5, "lon": 2.5},
+    labels={'t_mean': '°C'},
+)
+fig_map.update_layout(
+    height=600,
+    coloraxis_colorbar=dict(title="°C"),
+    margin=dict(l=0, r=0, t=0, b=0)
+)
+st.plotly_chart(fig_map, use_container_width=True)
+
+st.markdown("---")
+
+# --- BLOC 7 : TABLEAU COMPARATIF ---
 st.subheader(f"📋 Comparatif toutes villes en {annee_cible}")
 
 rows = []
