@@ -100,8 +100,8 @@ st.subheader(f"📊 Indicateurs clés en {annee_cible} vs normale 1981-2010")
 col1, col2, col3, col4 = st.columns(4)
 
 with col1:
-    val = get_metric(ville, 'tx_mean', annee_cible, scenario_col)
-    ref = get_normale(ville, 'tx_mean')
+    val = get_metric(ville, 'tm_mean', annee_cible, scenario_col)
+    ref = get_normale(ville, 'tm_mean')
     st.metric("🌡️ Température moyenne", f"{val}°C", delta_str(val, ref) + "°C vs 1981-2010")
 
 with col2:
@@ -127,11 +127,11 @@ st.markdown("---")
 col_left, col_right = st.columns(2)
 
 with col_left:
-    st.subheader("📈 Température moyenne annuelle (TX)")
-    hist_t = get_hist(ville, 'tx_mean')
-    pred_opt = get_serie(ville, 'tx_mean', 'optimiste')
-    pred_med = get_serie(ville, 'tx_mean', 'median')
-    pred_pes = get_serie(ville, 'tx_mean', 'pessimiste')
+    st.subheader("📈 Température moyenne annuelle")
+    hist_t = get_hist(ville, 'tm_mean')
+    pred_opt = get_serie(ville, 'tm_mean', 'optimiste')
+    pred_med = get_serie(ville, 'tm_mean', 'median')
+    pred_pes = get_serie(ville, 'tm_mean', 'pessimiste')
 
     fig_t = go.Figure()
     fig_t.add_trace(go.Scatter(x=hist_t['year'], y=hist_t['value'], mode='markers',
@@ -249,7 +249,7 @@ st.subheader(f"🗺️ Carte des températures moyennes en {annee_cible}")
 
 map_data = []
 for v, (lat, lon) in COORDS.items():
-    val = get_metric(v, 'tx_mean', annee_cible, scenario_col)
+    val = get_metric(v, 'tm_mean', annee_cible, scenario_col)
     if val:
         map_data.append({'ville': v, 'lat': lat, 'lon': lon, 'tx_mean': val})
 
@@ -284,7 +284,7 @@ rows = []
 for v in VILLES:
     rows.append({
         'Ville': v,
-        'T. moyenne TX (°C)': get_metric(v, 'tx_mean', annee_cible, scenario_col),
+        'T. moyenne (°C)': get_metric(v, 'tm_mean', annee_cible, scenario_col),
         'T. max (°C)': get_metric(v, 'tx_max', annee_cible, scenario_col),
         'Jours canicule': get_metric(v, 'jours_canicule', annee_cible, scenario_col),
         'Nuits tropicales': get_metric(v, 'nuits_tropicales', annee_cible, scenario_col),
