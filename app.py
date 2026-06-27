@@ -151,7 +151,7 @@ with col_left:
     st.plotly_chart(fig_t, use_container_width=True)
 
 with col_right:
-    st.subheader("🔥 Jours de canicule (TX > 35°C)")
+    st.subheader("🔥 Jours de canicule (Température > 35°C)")
     hist_c = get_hist(ville, 'jours_canicule')
     pred_med_c = get_serie(ville, 'jours_canicule', 'median')
     pred_opt_c = get_serie(ville, 'jours_canicule', 'optimiste')
@@ -186,7 +186,7 @@ st.markdown("---")
 col_left2, col_right2 = st.columns(2)
 
 with col_left2:
-    st.subheader("🌙 Nuits tropicales (TN > 20°C)")
+    st.subheader("🌙 Nuits tropicales (Temp. nocturne > 20°C)")
     hist_n = get_hist(ville, 'nuits_tropicales')
     pred_med_n = get_serie(ville, 'nuits_tropicales', 'median')
     pred_opt_n = get_serie(ville, 'nuits_tropicales', 'optimiste')
