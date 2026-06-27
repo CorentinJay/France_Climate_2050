@@ -291,5 +291,5 @@ for v in VILLES:
         'Humidex max (°C)': get_metric(v, 'humidex_max', annee_cible, scenario_col),
     })
 
-df_table = pd.DataFrame(rows).sort_values('T. moyenne TX (°C)', ascending=False).reset_index(drop=True)
+df_table = pd.DataFrame(rows).sort_values('T. moyenne (°C)', ascending=False).reset_index(drop=True)
 st.dataframe(df_table, use_container_width=True, height=500)
