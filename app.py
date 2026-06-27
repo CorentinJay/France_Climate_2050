@@ -25,34 +25,30 @@ VILLES = sorted(predictions['ville'].unique().tolist())
 
 # --- COORDONNÉES DES VILLES ---
 COORDS = {
-    "Paris":              (48.85,  2.35),
-    "Lyon":               (45.75,  4.85),
-    "Bordeaux":           (44.84, -0.58),
-    "Toulouse":           (43.60,  1.44),
-    "Nantes":             (47.22, -1.55),
-    "Strasbourg":         (48.57,  7.75),
-    "Lille":              (50.63,  3.07),
-    "Montpellier":        (43.61,  3.87),
-    "Rennes":             (48.11, -1.68),
-    "Dijon":              (47.32,  5.04),
-    "Reims":              (49.25,  4.03),
-    "Angoulême":          (45.65,  0.16),
-    "Clermont-Fd":        (45.78,  3.08),
-    "Valence":            (44.93,  4.89),
     "Aix-en-Provence":    (43.53,  5.44),
-    "Nîmes":              (43.84,  4.36),
-    "Carcassonne":        (43.21,  2.35),
-    "Dax":                (43.71, -1.05),
-    "Mont-de-Marsan":     (43.89, -0.50),
-    "Brive-la-Gaillarde": (45.15,  1.53),
-    "Limoges":            (45.83,  1.26),
-    "Poitiers":           (46.58,  0.34),
-    "Le Mans":            (48.00,  0.20),
-    "Rouen":              (49.44,  1.10),
     "Amiens":             (49.90,  2.30),
-    "Nancy":              (48.69,  6.18),
-    "Bourges":            (47.08,  2.40),
+    "Angoulême":          (45.65,  0.16),
     "Avignon":            (43.95,  4.81),
+    "Bordeaux":           (44.84, -0.58),
+    "Bourges":            (47.08,  2.40),
+    "Brive-la-Gaillarde": (45.15,  1.53),
+    "Carcassonne":        (43.21,  2.35),
+    "Dijon":              (47.32,  5.04),
+    "Le Mans":            (48.00,  0.20),
+    "Lille":              (50.63,  3.07),
+    "Limoges":            (45.83,  1.26),
+    "Lyon":               (45.75,  4.85),
+    "Mont-de-Marsan":     (43.89, -0.50),
+    "Montpellier":        (43.61,  3.87),
+    "Nancy":              (48.69,  6.18),
+    "Nantes":             (47.22, -1.55),
+    "Nîmes":              (43.84,  4.36),
+    "Paris":              (48.85,  2.35),
+    "Poitiers":           (46.58,  0.34),
+    "Rennes":             (48.11, -1.68),
+    "Rouen":              (49.44,  1.10),
+    "Strasbourg":         (48.57,  7.75),
+    "Toulouse":           (43.60,  1.44),
 }
 
 # --- HELPERS ---
@@ -90,7 +86,7 @@ annee_cible = st.sidebar.slider("Année cible", min_value=2030, max_value=2050, 
 scenario = st.sidebar.radio("Scénario", ["Optimiste", "Médian", "Pessimiste"], index=1)
 scenario_col = {"Optimiste": "optimiste", "Médian": "median", "Pessimiste": "pessimiste"}[scenario]
 st.sidebar.markdown("---")
-st.sidebar.markdown("*Données ERA5 — Copernicus/ECMWF*")
+st.sidebar.markdown("*Données stations Météo-France*")
 st.sidebar.markdown("*Modélisation : régression polynomiale + bootstrap*")
 
 # --- TITRE ---
@@ -104,13 +100,13 @@ st.subheader(f"📊 Indicateurs clés en {annee_cible} vs normale 1981-2010")
 col1, col2, col3, col4 = st.columns(4)
 
 with col1:
-    val = get_metric(ville, 't_mean', annee_cible, scenario_col)
-    ref = get_normale(ville, 't_mean')
+    val = get_metric(ville, 'tx_mean', annee_cible, scenario_col)
+    ref = get_normale(ville, 'tx_mean')
     st.metric("🌡️ Température moyenne", f"{val}°C", delta_str(val, ref) + "°C vs 1981-2010")
 
 with col2:
-    val = get_metric(ville, 't_max', annee_cible, scenario_col)
-    ref = get_normale(ville, 't_max')
+    val = get_metric(ville, 'tx_max', annee_cible, scenario_col)
+    ref = get_normale(ville, 'tx_max')
     st.metric("🔥 Température maximale", f"{val}°C", delta_str(val, ref) + "°C vs 1981-2010")
 
 with col3:
@@ -127,15 +123,15 @@ with col4:
 
 st.markdown("---")
 
-# --- BLOC 2 & 3 : TEMPÉRATURE + JOURS CANICULE ---
+# --- BLOC 2 & 3 : TEMPÉRATURE MOYENNE + JOURS CANICULE ---
 col_left, col_right = st.columns(2)
 
 with col_left:
-    st.subheader("📈 Température moyenne annuelle")
-    hist_t = get_hist(ville, 't_mean')
-    pred_opt = get_serie(ville, 't_mean', 'optimiste')
-    pred_med = get_serie(ville, 't_mean', 'median')
-    pred_pes = get_serie(ville, 't_mean', 'pessimiste')
+    st.subheader("📈 Température moyenne annuelle (TX)")
+    hist_t = get_hist(ville, 'tx_mean')
+    pred_opt = get_serie(ville, 'tx_mean', 'optimiste')
+    pred_med = get_serie(ville, 'tx_mean', 'median')
+    pred_pes = get_serie(ville, 'tx_mean', 'pessimiste')
 
     fig_t = go.Figure()
     fig_t.add_trace(go.Scatter(x=hist_t['year'], y=hist_t['value'], mode='markers',
@@ -155,7 +151,7 @@ with col_left:
     st.plotly_chart(fig_t, use_container_width=True)
 
 with col_right:
-    st.subheader("🔥 Jours de canicule (t_max > 35°C)")
+    st.subheader("🔥 Jours de canicule (TX > 35°C)")
     hist_c = get_hist(ville, 'jours_canicule')
     pred_med_c = get_serie(ville, 'jours_canicule', 'median')
     pred_opt_c = get_serie(ville, 'jours_canicule', 'optimiste')
@@ -186,11 +182,11 @@ with col_right:
 
 st.markdown("---")
 
-# --- BLOC 4 & 5 : NUITS TROPICALES + PRÉCIPITATIONS ---
+# --- BLOC 4 & 5 : NUITS TROPICALES + HUMIDEX ---
 col_left2, col_right2 = st.columns(2)
 
 with col_left2:
-    st.subheader("🌙 Nuits tropicales (t_min > 20°C)")
+    st.subheader("🌙 Nuits tropicales (TN > 20°C)")
     hist_n = get_hist(ville, 'nuits_tropicales')
     pred_med_n = get_serie(ville, 'nuits_tropicales', 'median')
     pred_opt_n = get_serie(ville, 'nuits_tropicales', 'optimiste')
@@ -220,29 +216,31 @@ with col_left2:
     st.plotly_chart(fig_n, use_container_width=True)
 
 with col_right2:
-    st.subheader("🌧️ Précipitations annuelles")
-    hist_p = get_hist(ville, 'pr_sum')
-    pred_med_p = get_serie(ville, 'pr_sum', 'median')
-    pred_opt_p = get_serie(ville, 'pr_sum', 'optimiste')
-    pred_pes_p = get_serie(ville, 'pr_sum', 'pessimiste')
+    st.subheader("🥵 Température ressentie max (Humidex)")
+    hist_h = get_hist(ville, 'humidex_max')
+    pred_med_h = get_serie(ville, 'humidex_max', 'median')
+    pred_opt_h = get_serie(ville, 'humidex_max', 'optimiste')
+    pred_pes_h = get_serie(ville, 'humidex_max', 'pessimiste')
 
-    fig_p = go.Figure()
-    fig_p.add_trace(go.Bar(x=hist_p['year'], y=hist_p['value'],
-        name='Observé', marker_color='steelblue', opacity=0.6))
-    fig_p.add_trace(go.Scatter(x=pred_med_p['year'], y=pred_med_p['value'],
-        mode='lines', name='Projection', line=dict(color='darkblue', width=2)))
-    fig_p.add_trace(go.Scatter(x=pred_pes_p['year'], y=pred_pes_p['value'],
+    hist_h_sorted = hist_h.sort_values('year')
+
+    fig_h = go.Figure()
+    fig_h.add_trace(go.Scatter(x=hist_h_sorted['year'], y=hist_h_sorted['value'], mode='markers',
+        name='Observé', marker=dict(color='darkorange', size=5, opacity=0.6)))
+    fig_h.add_trace(go.Scatter(x=pred_med_h['year'], y=pred_med_h['value'],
+        mode='lines', name='Projection', line=dict(color='darkred', width=2)))
+    fig_h.add_trace(go.Scatter(x=pred_pes_h['year'], y=pred_pes_h['value'],
         mode='lines', line=dict(width=0), showlegend=False))
-    fig_p.add_trace(go.Scatter(x=pred_opt_p['year'], y=pred_opt_p['value'],
-        mode='lines', fill='tonexty', fillcolor='rgba(0,0,200,0.1)',
+    fig_h.add_trace(go.Scatter(x=pred_opt_h['year'], y=pred_opt_h['value'],
+        mode='lines', fill='tonexty', fillcolor='rgba(255,100,0,0.1)',
         line=dict(width=0), name='Intervalle'))
-    fig_p.add_vline(x=2026, line_dash="dash", line_color="gray",
+    fig_h.add_vline(x=2026, line_dash="dash", line_color="gray",
         annotation_text="Aujourd'hui", annotation_position="top left")
-    fig_p.add_vline(x=annee_cible, line_dash="dot", line_color="orange",
+    fig_h.add_vline(x=annee_cible, line_dash="dot", line_color="orange",
         annotation_text=str(annee_cible), annotation_position="top right")
-    fig_p.update_layout(height=500, xaxis_title="Année", yaxis_title="mm",
+    fig_h.update_layout(height=500, xaxis_title="Année", yaxis_title="°C ressenti",
         legend=dict(orientation="h", y=-0.15), hovermode="x unified")
-    st.plotly_chart(fig_p, use_container_width=True)
+    st.plotly_chart(fig_h, use_container_width=True)
 
 st.markdown("---")
 
@@ -251,24 +249,24 @@ st.subheader(f"🗺️ Carte des températures moyennes en {annee_cible}")
 
 map_data = []
 for v, (lat, lon) in COORDS.items():
-    val = get_metric(v, 't_mean', annee_cible, scenario_col)
+    val = get_metric(v, 'tx_mean', annee_cible, scenario_col)
     if val:
-        map_data.append({'ville': v, 'lat': lat, 'lon': lon, 't_mean': val})
+        map_data.append({'ville': v, 'lat': lat, 'lon': lon, 'tx_mean': val})
 
 df_map = pd.DataFrame(map_data)
 
 fig_map = px.scatter_mapbox(
-    df_map, lat='lat', lon='lon', color='t_mean',
+    df_map, lat='lat', lon='lon', color='tx_mean',
     size=[1] * len(df_map),
     size_max=15,
     hover_name='ville',
-    hover_data={'t_mean': ':.1f', 'lat': False, 'lon': False},
+    hover_data={'tx_mean': ':.1f', 'lat': False, 'lon': False},
     color_continuous_scale='RdYlBu_r',
-    range_color=[df_map['t_mean'].min() - 1, df_map['t_mean'].max() + 1],
+    range_color=[df_map['tx_mean'].min() - 1, df_map['tx_mean'].max() + 1],
     mapbox_style='carto-positron',
     zoom=5,
     center={"lat": 46.5, "lon": 2.5},
-    labels={'t_mean': '°C'},
+    labels={'tx_mean': '°C'},
 )
 fig_map.update_layout(
     height=600,
@@ -286,12 +284,12 @@ rows = []
 for v in VILLES:
     rows.append({
         'Ville': v,
-        'T. moyenne (°C)': get_metric(v, 't_mean', annee_cible, scenario_col),
-        'T. max (°C)': get_metric(v, 't_max', annee_cible, scenario_col),
+        'T. moyenne TX (°C)': get_metric(v, 'tx_mean', annee_cible, scenario_col),
+        'T. max (°C)': get_metric(v, 'tx_max', annee_cible, scenario_col),
         'Jours canicule': get_metric(v, 'jours_canicule', annee_cible, scenario_col),
         'Nuits tropicales': get_metric(v, 'nuits_tropicales', annee_cible, scenario_col),
-        'Précip. (mm)': get_metric(v, 'pr_sum', annee_cible, scenario_col),
+        'Humidex max (°C)': get_metric(v, 'humidex_max', annee_cible, scenario_col),
     })
 
-df_table = pd.DataFrame(rows).sort_values('T. moyenne (°C)', ascending=False).reset_index(drop=True)
+df_table = pd.DataFrame(rows).sort_values('T. moyenne TX (°C)', ascending=False).reset_index(drop=True)
 st.dataframe(df_table, use_container_width=True, height=500)
