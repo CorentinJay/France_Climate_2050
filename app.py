@@ -245,35 +245,65 @@ with col_right2:
 st.markdown("---")
 
 # --- BLOC 6 : CARTE ---
-st.subheader(f"🗺️ Carte des températures moyennes en {annee_cible}")
+# --- BLOC 6 : CARTES ---
+st.subheader(f"🗺️ Carte climatique en {annee_cible}")
 
+col_map1, col_map2 = st.columns(2)
+
+# Calcul des données carte
 map_data = []
 for v, (lat, lon) in COORDS.items():
-    val = get_metric(v, 'tm_mean', annee_cible, scenario_col)
-    if val:
-        map_data.append({'ville': v, 'lat': lat, 'lon': lon, 'tx_mean': val})
+    val_tm = get_metric(v, 'tm_mean', annee_cible, scenario_col)
+    ref_tm = get_normale(v, 'tm_mean')
+    val_canicule = get_metric(v, 'jours_canicule', annee_cible, scenario_col)
+    if val_tm and ref_tm:
+        map_data.append({
+            'ville': v, 'lat': lat, 'lon': lon,
+            'delta_tm': round(val_tm - ref_tm, 2),
+            'jours_canicule': val_canicule
+        })
 
 df_map = pd.DataFrame(map_data)
 
-fig_map = px.scatter_mapbox(
-    df_map, lat='lat', lon='lon', color='tx_mean',
-    size=[1] * len(df_map),
-    size_max=15,
-    hover_name='ville',
-    hover_data={'tx_mean': ':.1f', 'lat': False, 'lon': False},
-    color_continuous_scale='RdYlBu_r',
-    range_color=[df_map['tx_mean'].min() - 1, df_map['tx_mean'].max() + 1],
-    mapbox_style='carto-positron',
-    zoom=5,
-    center={"lat": 46.5, "lon": 2.5},
-    labels={'tx_mean': '°C'},
-)
-fig_map.update_layout(
-    height=600,
-    coloraxis_colorbar=dict(title="°C"),
-    margin=dict(l=0, r=0, t=0, b=0)
-)
-st.plotly_chart(fig_map, use_container_width=True)
+with col_map1:
+    st.markdown(f"**🌡️ Hausse température vs 1981-2010**")
+    fig_map1 = px.scatter_mapbox(
+        df_map, lat='lat', lon='lon', color='delta_tm',
+        size=[1] * len(df_map), size_max=15,
+        hover_name='ville',
+        hover_data={'delta_tm': ':.2f', 'lat': False, 'lon': False},
+        color_continuous_scale='YlOrRd',
+        range_color=[0, df_map['delta_tm'].max() + 0.5],
+        mapbox_style='carto-positron',
+        zoom=4.5, center={"lat": 46.5, "lon": 2.5},
+        labels={'delta_tm': '°C'},
+    )
+    fig_map1.update_layout(
+        height=500,
+        coloraxis_colorbar=dict(title="°C"),
+        margin=dict(l=0, r=0, t=0, b=0)
+    )
+    st.plotly_chart(fig_map1, use_container_width=True)
+
+with col_map2:
+    st.markdown(f"**☀️ Jours de canicule projetés**")
+    fig_map2 = px.scatter_mapbox(
+        df_map, lat='lat', lon='lon', color='jours_canicule',
+        size=[1] * len(df_map), size_max=15,
+        hover_name='ville',
+        hover_data={'jours_canicule': ':.1f', 'lat': False, 'lon': False},
+        color_continuous_scale='YlOrRd',
+        range_color=[0, df_map['jours_canicule'].max() + 1],
+        mapbox_style='carto-positron',
+        zoom=4.5, center={"lat": 46.5, "lon": 2.5},
+        labels={'jours_canicule': 'jours'},
+    )
+    fig_map2.update_layout(
+        height=500,
+        coloraxis_colorbar=dict(title="Jours"),
+        margin=dict(l=0, r=0, t=0, b=0)
+    )
+    st.plotly_chart(fig_map2, use_container_width=True)
 
 st.markdown("---")
 
