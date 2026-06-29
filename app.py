@@ -171,13 +171,15 @@ def delta_str(val, ref):
     return f"{delta:+} ({pct:+.1f}%)"
 
 # --- SÉLECTEUR DE LANGUE (haut de page) ---
-col_lang1, col_lang2, col_lang3 = st.columns([6, 1, 1])
+col_lang1, col_lang2 = st.columns([8, 1])
 with col_lang2:
-    if st.button("🇫🇷 FR"):
-        st.session_state['lang'] = 'fr'
-with col_lang3:
-    if st.button("🇬🇧 EN"):
-        st.session_state['lang'] = 'en'
+    col_fr, col_en = st.columns(2)
+    with col_fr:
+        if st.button("🇫🇷"):
+            st.session_state['lang'] = 'fr'
+    with col_en:
+        if st.button("🇬🇧"):
+            st.session_state['lang'] = 'en'
 
 if 'lang' not in st.session_state:
     st.session_state['lang'] = 'fr'
